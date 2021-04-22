@@ -1,7 +1,8 @@
 import { TypeRegistry } from '@polkadot/types';
 import { EXTRINSIC_VERSION } from '@polkadot/types/extrinsic/v4/Extrinsic';
 import { AnyJson } from '@polkadot/types/types';
-import * as txwrapper from '@substrate/txwrapper';
+//import  * as txwrapper from '@substrate/txwrapper';
+import * as txwrapper from '@ddorgan/txwrapper';
 import { KeyringPair } from '@substrate/txwrapper';
 import { createMetadata } from '@substrate/txwrapper/lib/util';
 import { Args, createMethod } from '@substrate/txwrapper/lib/util/method';
@@ -235,6 +236,64 @@ export class TransactionConstruct {
 			registry,
 		};
 	}
+	async proxy(
+		{ origin, tip, height, metadataRpc }: TransactionOpts,
+		real: string,
+		forceProxyType: string,
+		call: string
+	): Promise<UnsignedMaterial> {
+		const { baseInfo, registry } = await this.fetchTransactionMaterial({
+			origin,
+			height,
+			metadataRpc,
+		});
+		const unsigned = txwrapper.proxy.proxy(
+			{ real, forceProxyType, call },
+			{
+				address: origin,
+				tip,
+				...baseInfo,
+			},
+			{ metadataRpc: baseInfo.metadataRpc, registry }
+		);
+
+		return {
+			unsigned,
+			metadataRpc: baseInfo.metadataRpc,
+			registry,
+		};
+	}
+
+	async proxyAddAnonymous(
+		{ origin, tip, height, metadataRpc }: TransactionOpts,
+		proxyType: string,
+		delay: number,
+		index: number
+	): Promise<UnsignedMaterial> {
+		const { baseInfo, registry } = await this.fetchTransactionMaterial({
+			origin,
+			height,
+			metadataRpc,
+		});
+
+		const unsigned = txwrapper.proxy.anonymous(
+			{ proxyType, delay, index },
+			{
+				address: origin,
+				tip,
+				...baseInfo,
+			},
+			{ metadataRpc: baseInfo.metadataRpc, registry }
+		);
+
+
+
+		return {
+			unsigned,
+			metadataRpc: baseInfo.metadataRpc,
+			registry,
+		};
+	}
 
 	async proxyProxyAnnounced(
 		{ origin, tip, height, metadataRpc }: TransactionOpts,
@@ -352,6 +411,32 @@ export class TransactionConstruct {
 
 		const unsigned = txwrapper.balances.transfer(
 			{ dest, value },
+			{
+				address: origin,
+				tip,
+				...baseInfo,
+			},
+			{ metadataRpc: baseInfo.metadataRpc, registry }
+		);
+
+		return { unsigned, registry, metadataRpc: baseInfo.metadataRpc };
+	}
+
+	async bond(
+		{ origin, tip, height, metadataRpc }: TransactionOpts,
+		controller: string,
+		value: string,
+		payee: string
+	): Promise<UnsignedMaterial> {
+		const { baseInfo, registry } = await this.fetchTransactionMaterial({
+			origin,
+			height,
+			metadataRpc,
+		});
+
+		const unsigned = txwrapper.staking.bond(
+			{ controller, value, payee },
+
 			{
 				address: origin,
 				tip,

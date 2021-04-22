@@ -14,7 +14,7 @@ export class ChainSync {
 		method: string,
 		// In real life you would need to check the events data, however for this demo we don't
 		_data?: string[]
-	): Promise<{ height: number; index: number } | null> {
+	): Promise<{ height: number; index: number, eventdata: string } | null> {
 		const searching = true;
 		while (searching) {
 			const block = await this.sidecarApi.getBlock();
@@ -32,6 +32,7 @@ export class ChainSync {
 						return {
 							height: parseInt(block.number),
 							index: idx,
+							eventdata: ext.events[1].data[0], // get proxy address
 						};
 					}
 

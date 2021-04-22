@@ -70,6 +70,14 @@
   dependencies:
     "@darwinia/types-known" "^1.1.0-alpha.1"
 
+"@ddorgan/txwrapper@^3.10.7":
+  version "3.10.13"
+  resolved "https://registry.yarnpkg.com/@ddorgan/txwrapper/-/txwrapper-3.10.13.tgz#eef2362f0cbafaf01eb3b19fcc7bdd46787371f9"
+  integrity sha512-c16kPVZc71gDODDP8k4OXncvGATrrEAUpPjSkr83E0BnLMzTbjcBjwN+2AXYwqYWuQCkr4mP2vr+Lc6ogxoQTg==
+  dependencies:
+    "@polkadot/api" "3.11.1"
+    memoizee "^0.4.14"
+
 "@edgeware/node-types@^3.3.2":
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/@edgeware/node-types/-/node-types-3.3.2.tgz#cf29666457f4af8f45138cf7e67807861fb034fd"

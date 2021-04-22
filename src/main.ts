@@ -15,6 +15,7 @@ import {
 	waiting,
 	waitToContinue,
 } from './util';
+import { proxySetup } from './proxySetup';
 
 const sidecarUrl = 'http://127.0.0.1:8080';
 
@@ -70,6 +71,36 @@ async function main() {
 
 	const delayPeriod = 10; // 10 blocks = 1 min
 	const maxWeight = 1000000000;
+
+	const anon_proxy = await setupProxyAnon(
+		transactionConstruct,
+		chainSync,
+		sidecarApi,
+		keys,
+		delayPeriod
+	);
+	console.log("anon proxy", anon_proxy)
+
+	const transferToAnonSigCall = await transactionConstruct.balancesTransfer(
+		{ origin: keys.alice.address },
+		anon_proxy,
+		trasnferValue
+	);
+	const signedTransferToAnonSigCall = transactionConstruct.createAndSignTransaction(
+		keys.alice,
+		transferToAnonSigCall
+	);
+	submiting();
+	const nodeRes2 = await sidecarApi.submitTransaction(
+		signedTransferToAnonSigCall
+	);
+	console.log(`Node response: `, nodeRes2.hash);
+	waiting();
+
+	// Setup staking proxy
+	const staking_proxy = await proxySetup(anon_proxy);
+	await waitToContinue();
+
 	// Make Eve the proxy for the multisig address and set up the proxy with `delayPeriod`
 	// delay between a proxied calls announcement and earliest possible point of execution
 	await setupProxyForMultisig(
@@ -132,6 +163,49 @@ async function main() {
 }
 
 main().catch(console.log);
+
+
+async function setupProxyAnon(
+	transactionConstruct: TransactionConstruct,
+	chainSync: ChainSync,
+	sidecarApi: SidecarApi,
+	keys: Keys,
+	delayPeriod: number
+	): Promise<any> {
+	// construct tx to add Eve as a proxy to multisig address
+	//const innerTx_staking = api.tx.proxy.anon(multisig_staking, "Staking", 30)
+	//let anon_proxy;
+	const anonToD0 = await transactionConstruct.proxyAddAnonymous(
+		{ origin: keys.eve.address },
+		'Any',
+		0,
+		0
+	);
+	waiting();
+
+	const signedTransferToD1 = await transactionConstruct.createAndSignTransaction(
+		keys.eve,
+		anonToD0
+	);
+	submiting();
+	const nodeRes4 = await sidecarApi.submitTransaction(signedTransferToD1);
+	waiting();
+
+
+	const inclusionPointanon = await chainSync.pollingEventListener(
+		'proxy',
+		'AnonymousCreated'
+	);
+
+	console.log(
+		`proxy.anonymous succesfully included at `,
+		inclusionPointanon
+	);
+    const anon_proxy = inclusionPointanon?.eventdata.toString();
+
+    return(anon_proxy);
+
+}
 
 async function adversarialPath(
 	transactionConstruct: TransactionConstruct,
